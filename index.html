@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Detalle Compacto - Series</title>
+<style>
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background-color: #111;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 100vh;
+}
+
+/* Fondo detrás del póster con gradiente hacia negro */
+.detail-background {
+  width: 100%;
+  height: 250px;
+  background-size: cover;
+  background-position: center;
+  position: relative;
+}
+
+.detail-background::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, rgba(17,17,17,0) 60%, rgba(17,17,17,1) 100%);
+}
+
+/* Contenedor central compacto */
+.detail-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  max-width: 280px;
+  margin-top: -120px;
+  z-index: 1;
+  gap: 10px;
+}
+
+/* Póster pequeño y centrado */
+.poster-container img {
+  width: 160px;
+  border-radius: 10px;
+  box-shadow: 0 0 15px rgba(0,0,0,0.7);
+}
+
+/* Detalles debajo del póster */
+.details-container {
+  text-align: center;
+  width: 100%;
+  background-color: #111;
+  padding: 15px;
+  border-radius: 10px;
+  position: relative;
+}
+
+.details-container h1 {
+  font-size: 18px;
+  margin: 5px 0 5px;
+  color: #fff;
+}
+
+.details-container .info {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.details-container .info .item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: #fff;
+}
+
+.details-container .info svg {
+  width: 12px;
+  height: 12px;
+  fill: #fff;
+}
+
+/* Sinopsis */
+.details-container .sinopsis-wrapper {
+  max-height: 80px;
+  overflow: hidden;
+  transition: max-height 0.4s ease;
+  position: relative;
+  padding-bottom: 10px;
+}
+
+.details-container p {
+  font-size: 13px;
+  line-height: 1.3;
+  color: #fff;
+  margin: 0;
+}
+
+.details-container .ver-mas {
+  color: #e81c1c;
+  cursor: pointer;
+  font-size: 13px;
+  margin-top: 4px;
+  display: none;
+}
+
+/* Botón de capítulos más grande fijo en la esquina */
+.chapters-btn {
+  width: 70px;
+  height: 70px;
+  background: #e81c1c;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: fixed;
+  bottom: 15px;
+  right: 15px;
+  cursor: pointer;
+  color: #fff;
+  font-size: 30px;
+  box-shadow: 0 0 10px rgba(255,255,255,0.5);
+  text-decoration: none;
+  z-index: 2;
+}
+
+.chapters-list {
+  display: none;
+  margin-top: 10px;
+  background: rgba(255,255,255,0.05);
+  padding: 10px;
+  border-radius: 8px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.chapters-list ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.chapters-list li {
+  margin: 5px 0;
+}
+
+.chapters-list a {
+  color: #fff;
+  text-decoration: none;
+}
+
+.chapters-list a:hover {
+  color: #ff4444;
+}
+
+</style>
+</head>
+<body>
+
+<div class="detail-background" id="detailBackground"></div>
+
+<div class="detail-container">
+  <div class="poster-container">
+    <img id="detailPoster" src="" alt="Póster">
+  </div>
+  <div class="details-container">
+    <h1 id="detailTitle"></h1>
+    <div class="info">
+      <div class="item">
+        <svg viewBox="0 0 24 24"><path d="M19 4h-1V2h-2v2H8V2H6v2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2zm0 16H5V9h14z"></path></svg>
+        <span id="detailYear">2025</span>
+      </div>
+      <div class="item">
+        <svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm1 11h4v2h-6V7h2z"></path></svg>
+        <span id="detailDuration">120 min</span>
+      </div>
+      <div class="item">
+        <svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"></path></svg>
+        <span id="detailRating">8.5</span>
+      </div>
+    </div>
+    <div class="sinopsis-wrapper" id="sinopsisWrapper">
+      <p id="detailSynopsis"></p>
+    </div>
+    <div class="ver-mas" id="verMasBtn">Ver más</div>
+
+    <!-- Lista de capítulos -->
+    <div class="chapters-list" id="chaptersList">
+      <ul></ul>
+    </div>
+  </div>
+</div>
+
+<!-- Botón de capítulos -->
+<a id="chaptersBtn" class="chapters-btn">≡</a>
+
+<script>
+function showSeriesDetail(posterUrl, backgroundUrl, title, year, duration, rating, synopsis, chapters) {
+  document.getElementById('detailPoster').src = posterUrl;
+  document.getElementById('detailBackground').style.backgroundImage = `url('${backgroundUrl}')`;
+  document.getElementById('detailTitle').textContent = title;
+  document.getElementById('detailYear').textContent = year;
+  document.getElementById('detailDuration').textContent = duration;
+  document.getElementById('detailRating').textContent = rating;
+
+  const sinopsisElem = document.getElementById('detailSynopsis');
+  const wrapper = document.getElementById('sinopsisWrapper');
+  const verMasBtn = document.getElementById('verMasBtn');
+
+  sinopsisElem.textContent = synopsis;
+
+  setTimeout(() => {
+    if (sinopsisElem.scrollHeight > wrapper.clientHeight) verMasBtn.style.display = 'block';
+    else verMasBtn.style.display = 'none';
+  }, 50);
+
+  verMasBtn.onclick = () => {
+    if(wrapper.style.maxHeight === '80px' || wrapper.style.maxHeight === '') {
+      wrapper.style.maxHeight = '200px';
+      wrapper.style.overflowY = 'auto';
+      verMasBtn.textContent = 'Ver menos';
+    } else {
+      wrapper.style.maxHeight = '80px';
+      wrapper.style.overflowY = 'hidden';
+      verMasBtn.textContent = 'Ver más';
+    }
+  }
+
+  // Cargar capítulos
+  const chaptersList = document.getElementById('chaptersList');
+  const ul = chaptersList.querySelector('ul');
+  ul.innerHTML = '';
+  chapters.forEach(c => {
+    const li = document.createElement('li');
+    const a = document.createElement('a');
+    a.href = c.url;
+    a.textContent = c.name;
+    li.appendChild(a);
+    ul.appendChild(li);
+  });
+
+  // Toggle capítulos
+  const chaptersBtn = document.getElementById('chaptersBtn');
+  chaptersBtn.onclick = () => {
+    chaptersList.style.display = chaptersList.style.display === 'block' ? 'none' : 'block';
+  }
+}
+
+// Ejemplo con capacidad de agregar capítulos infinitos copiando y pegando
+showSeriesDetail(
+  'https://image.tmdb.org/t/p/original/8IIPZe4V2xNYFWY7lBY6GpN2L8O.jpg',
+  'https://image.tmdb.org/t/p/original/gESYHnWmRuF1T418Gxq3Q0Qytrn.jpg',
+  'ALIEN PLANETA TIERRA ',
+  '2025',
+  '1 temporada ',
+  '7.7',
+  'Cuando una misteriosa nave se estrella contra la Tierra, una joven y un variopinto grupo de soldados tácticos hacen un fatídico hallazgo que los pone cara a cara con la mayor amenaza del planeta. El equipo de rescate busca supervivientes entre los restos de la colisión y se topa con una forma de vida depredadora que levanta más misterios y miedos de los que cabría imaginarse. Debido a esta nueva amenaza, el equipo deberá luchar por sobrevivir. Lo que decidan hacer con este descubrimiento podría cambiar el planeta Tierra tal y como lo conocen.',
+  [
+    {name:'NUNCA JAMÁS', url:'https://lzplayerfree.blogspot.com/?url=U2FsdGVkX18LUCOwPMm6r%2F6TS1%2B4PWtIZ8vqmYoTvkPh94z2dnX5yyYrVgw4n8oxuZD%2BYL8Z8abn%2FrpKH4GywupPIZiNvCEpThIoDg4L5v9kpfCaQbicLDPsAFZFIlC8'},
+    {name:'Míster Octubre', url:'https://lzplayerfree.blogspot.com/?url=U2FsdGVkX1%2Fmvh9hKn4V8sxHEOxxt%2BxfGQEvPdp9vcBEVzCKP%2B%2B5zUjFOgbk92oVjaz%2FCipyLPEdhicuJD0%2FwL0t%2BPduZOFl9M9SaRdu%2Ffwak1kHx06poHgFGxwtc%2FQA'},
+    {name:'Metamorfosis', url:'https://lzplayerfree.blogspot.com/?url=U2FsdGVkX1%2BGeSJFhFUrDW60H0QXopYBkFDOqy9W8C5zDxgRro%2Bn8T1P1scQNoG8TOzr5XWuDYaMlIqb6e5pJ7WgB5Zcf%2FSdQPhzhBr2KF8KJ9Kz4Rd00ODness%2Fdun%2F'},
+
+    // Aquí puedes copiar y pegar nuevos capítulos debajo
+    
+   
+  ]
+);
+
+</script>
+
+</body>
+</html>
